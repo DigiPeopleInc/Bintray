@@ -1,0 +1,57 @@
+apply plugin: 'com.jfrog.bintray'
+apply plugin: 'maven-publish'
+
+task sourcesJar(type: Jar) {
+    classifier = 'sources'
+    from android.sourceSets.main.java.srcDirs
+}
+
+task javadoc(type: Javadoc) {
+    source = android.sourceSets.main.java.srcDirs
+    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+    exclude('**/*.kt')
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier = 'javadoc'
+    from javadoc.destinationDir
+}
+
+publishing {
+    publications {
+        production(MavenPublication) {
+            artifact("$buildDir/outputs/aar/${project.name}-release.aar")
+            artifact sourcesJar
+            artifact javadocJar
+            groupId = publishGroupId
+            artifactId = publishArtifactId
+            version = publishVersion
+        }
+    }
+}
+
+bintray {
+    Properties properties = new Properties()
+    properties.load(project.rootProject.file('local.properties').newDataInputStream())
+
+    user = properties.getProperty("bintray.user")
+    key = properties.getProperty("bintray.apikey")
+    publish = true
+    pkg {
+        repo = "maven"
+        name = publishArtifactId
+        licenses = ["Apache-2.0"]
+        desc = publishDesc
+        vcsUrl = publishVcsUrl
+        version {
+            name = publishVersion
+            vcsTag = publishVersion
+        }
+    }
+    publications = ['production']
+}
+
+task cleanAssemblePublish(type: GradleBuild) {
+    group = "publishing"
+    tasks = ['clean', 'assembleRelease', 'bintrayUpload']
+}
