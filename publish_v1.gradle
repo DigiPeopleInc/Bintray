@@ -40,11 +40,11 @@ bintray {
     user = properties.getProperty("bintray.user")
     key = properties.getProperty("bintray.apikey")
     publish = true
-    publicDownloadNumbers = true
     pkg {
         repo = "maven"
         name = publishArtifactId
         licenses = ["Apache-2.0"]
+        publicDownloadNumbers = true
         desc = publishDesc
         vcsUrl = publishVcsUrl
         version {
